@@ -133,7 +133,7 @@ static void picoquic_prague_update_alpha(picoquic_path_t* path_x, picoquic_pragu
         if (pr_state->acked_bytes_ecn > 0) {
             /* If we got ECN marks in the last RTT, update the ssthresh and the CWIN */
             pr_state->loss_cwnd = path_x->cwin;
-            uint64_t reduction = ((uint64_t) ((double) path_x->cwin * g)) / 2;
+            uint64_t reduction = ((uint64_t) ((double) path_x->cwin * pr_state->alpha)) / 2;
             pr_state->ssthresh = path_x->cwin - reduction;
             if (pr_state->ssthresh < PICOQUIC_CWIN_MINIMUM) {
                 pr_state->ssthresh = PICOQUIC_CWIN_MINIMUM;
