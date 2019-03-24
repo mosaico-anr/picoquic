@@ -1095,6 +1095,8 @@ int main(int argc, char** argv)
                 default_ca = picoquic_cubic_algorithm;
             } else if (strcmp(congestion_alg, "newreno") == 0) {
                 default_ca = picoquic_newreno_algorithm;
+            } else if (strcmp(congestion_alg, "prague") == 0) {
+                default_ca = picoquic_prague_algorithm;
             } else {
                 fprintf(stderr, "Unknown congestion alg %s, fallback to cubic\n", congestion_alg);
             }

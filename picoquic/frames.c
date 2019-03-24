@@ -2150,11 +2150,15 @@ uint8_t* picoquic_decode_ack_frame_maybe_ecn(picoquic_cnx_t* cnx, uint8_t* bytes
             cnx->ecn_ect1_total_remote = ecnx3[1];
         }
         if (ecnx3[2] > cnx->ecn_ce_total_remote) {
+            /* FIXME correct ACK size */
+            uint64_t acked_ecn_bytes = (ecnx3[2] - cnx->ecn_ce_total_remote) * 1200;
             cnx->ecn_ce_total_remote = ecnx3[2];
 
-            cnx->congestion_alg->alg_notify(cnx->path[0],
-                picoquic_congestion_notification_ecn_ec,
-                0, 0, cnx->pkt_ctx[pc].first_sack_item.end_of_sack_range, current_time);
+            if (cnx->congestion_alg) {
+                cnx->congestion_alg->alg_notify(cnx->path[0],
+                    picoquic_congestion_notification_ecn_ec,
+                    0, acked_ecn_bytes, cnx->pkt_ctx[pc].first_sack_item.end_of_sack_range, current_time);
+            }
         }
     }
 

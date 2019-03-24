@@ -28,6 +28,7 @@ set(PICOQUIC_LIBRARY_FILES
     picoquic/picohash.c
     picoquic/picosocks.c
     picoquic/picosplay.c
+    picoquic/prague.c
     picoquic/quicctx.c
     picoquic/sacks.c
     picoquic/sender.c
