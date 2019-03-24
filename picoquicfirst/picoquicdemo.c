@@ -164,7 +164,8 @@ int quic_server(const char* server_name, int server_port,
     const char* pem_cert, const char* pem_key,
     int just_once, int do_hrr, picoquic_connection_id_cb_fn cnx_id_callback,
     void* cnx_id_callback_ctx, uint8_t reset_seed[PICOQUIC_RESET_SECRET_SIZE],
-    int dest_if, int mtu_max, uint32_t proposed_version, int ecn_enabled)
+    int dest_if, int mtu_max, uint32_t proposed_version, int ecn_enabled,
+    picoquic_congestion_algorithm_t const* default_ca)
 {
     /* Start: start the QUIC process with cert and key files */
     int ret = 0;
@@ -205,7 +206,7 @@ int quic_server(const char* server_name, int server_port,
             }
             qserver->mtu_max = mtu_max;
 
-            picoquic_set_default_congestion_algorithm(qserver, picoquic_cubic_algorithm);
+            picoquic_set_default_congestion_algorithm(qserver, default_ca);
 
             /* TODO: add log level, to reduce size in "normal" cases */
             PICOQUIC_SET_LOG(qserver, stdout);
@@ -484,7 +485,8 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
     const char * alpn, const char * root_crt,
     uint32_t proposed_version, int force_zero_share, int force_migration,
     int nb_packets_before_key_update, int mtu_max, FILE* F_log,
-    int client_cnx_id_length, char * client_scenario_text, int ecn_enabled)
+    int client_cnx_id_length, char * client_scenario_text, int ecn_enabled,
+    picoquic_congestion_algorithm_t const* default_ca)
 {
     /* Start: start the QUIC process with cert and key files */
     int ret = 0;
@@ -561,7 +563,7 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
     if (ret == 0) {
         qclient = picoquic_create(8, NULL, NULL, root_crt, alpn, NULL, NULL, NULL, NULL, NULL, current_time, NULL, ticket_store_filename, NULL, 0);
 
-        picoquic_set_default_congestion_algorithm(qclient, picoquic_cubic_algorithm);
+        picoquic_set_default_congestion_algorithm(qclient, default_ca);
 
         if (picoquic_load_tokens(&qclient->p_first_token, current_time, token_store_filename) != 0) {
             fprintf(stderr, "Could not load tokens from <%s>.\n", token_store_filename);
@@ -993,6 +995,8 @@ void usage()
     fprintf(stderr, "  -v version            Version proposed by client, e.g. -v ff000012\n");
     fprintf(stderr, "  -z                    Set TLS zero share behavior on client, to force HRR.\n");
     fprintf(stderr, "  -E                    Activate ECN over the connection.\n");
+    fprintf(stderr, "  -C congestion_alg     Select the congestion algorithm of the connection.\n");
+    fprintf(stderr, "                        Current supported values: cubic, newreno, prague.\n");
     fprintf(stderr, "  -1                    Once: close the server after processing 1 connection.\n");
     fprintf(stderr, "  -S solution_dir       Set the path to the source files to find the default files\n");
     fprintf(stderr, "  -I length             Length of CNX_ID used by the client, default=8\n");
@@ -1041,6 +1045,8 @@ int main(int argc, char** argv)
     char default_server_cert_file[512];
     char default_server_key_file[512];
     char * client_scenario = NULL;
+    picoquic_congestion_algorithm_t *default_ca = picoquic_cubic_algorithm;
+    char *congestion_alg = NULL;
 
 #ifdef _WINDOWS
     WSADATA wsaData;
@@ -1051,7 +1057,7 @@ int main(int argc, char** argv)
 
     /* Get the parameters */
     int opt;
-    while ((opt = getopt(argc, argv, "c:k:p:u:v:1Erhzf:i:s:e:l:m:n:a:t:S:I:")) != -1) {
+    while ((opt = getopt(argc, argv, "c:k:p:u:v:1EC:rhzf:i:s:e:l:m:n:a:t:S:I:")) != -1) {
         switch (opt) {
         case 'c':
             server_cert_file = optarg;
@@ -1082,6 +1088,16 @@ int main(int argc, char** argv)
             break;
         case 'E':
             ecn_enabled = 1;
+            break;
+        case 'C':
+            congestion_alg = optarg;
+            if (strcmp(congestion_alg, "cubic") == 0) {
+                default_ca = picoquic_cubic_algorithm;
+            } else if (strcmp(congestion_alg, "newreno") == 0) {
+                default_ca = picoquic_newreno_algorithm;
+            } else {
+                fprintf(stderr, "Unknown congestion alg %s, fallback to cubic\n", congestion_alg);
+            }
             break;
         case 'r':
             do_hrr = 1;
@@ -1209,7 +1225,7 @@ int main(int argc, char** argv)
             server_cert_file, server_key_file, just_once, do_hrr,
             (cnx_id_cbdata == NULL) ? NULL : picoquic_connection_id_callback,
             (cnx_id_cbdata == NULL) ? NULL : (void*)cnx_id_cbdata,
-            (uint8_t*)reset_seed, dest_if, mtu_max, proposed_version, ecn_enabled);
+            (uint8_t*)reset_seed, dest_if, mtu_max, proposed_version, ecn_enabled, default_ca);
         printf("Server exit with code = %d\n", ret);
     } else {
         FILE* F_log = NULL;
@@ -1238,7 +1254,7 @@ int main(int argc, char** argv)
         /* Run as client */
         printf("Starting PicoQUIC connection to server IP = %s, port = %d\n", server_name, server_port);
         ret = quic_client(server_name, server_port, sni, alpn, root_trust_file, proposed_version, force_zero_share, 
-            force_migration, nb_packets_before_update, mtu_max, F_log, client_cnx_id_length, client_scenario, ecn_enabled);
+            force_migration, nb_packets_before_update, mtu_max, F_log, client_cnx_id_length, client_scenario, ecn_enabled, default_ca);
 
         printf("Client exit with code = %d\n", ret);
 
