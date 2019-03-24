@@ -281,13 +281,21 @@ int picoquic_socket_set_ecn_options(SOCKET_TYPE sd, int af, int * recv_set, int 
     return ret;
 }
 
-SOCKET_TYPE picoquic_open_client_socket(int af)
+SOCKET_TYPE picoquic_open_client_socket(int af, int ecn_enabled)
 {
     SOCKET_TYPE sd = socket(af, SOCK_DGRAM, IPPROTO_UDP);
 
     if (sd != INVALID_SOCKET) {
         if (picoquic_socket_set_pkt_info(sd, af) != 0) {
             DBG_PRINTF("Cannot set PKTINFO option (af=%d)\n", af);
+        }
+
+        if (ecn_enabled) {
+            int recv_set = 0;
+            int send_set = 0;
+
+            picoquic_socket_set_ecn_options(sd, af, &recv_set, &send_set);
+            DBG_PRINTF("Enabling ECN at client side: recv_set %x send_set %x\n", recv_set, send_set);
         }
     }
     else {
@@ -301,7 +309,7 @@ SOCKET_TYPE picoquic_open_client_socket(int af)
     return sd;
 }
 
-int picoquic_open_server_sockets(picoquic_server_sockets_t* sockets, int port)
+int picoquic_open_server_sockets(picoquic_server_sockets_t* sockets, int port, int ecn_enabled)
 {
     int ret = 0;
     const int sock_af[] = { AF_INET6, AF_INET };
@@ -320,6 +328,14 @@ int picoquic_open_server_sockets(picoquic_server_sockets_t* sockets, int port)
             ret = picoquic_socket_set_pkt_info(sockets->s_socket[i], sock_af[i]);
             if (ret == 0) {
                 ret = bind_to_port(sockets->s_socket[i], sock_af[i], port);
+            }
+
+            if (ecn_enabled) {
+                int recv_set = 0;
+                int send_set = 0;
+
+                ret = picoquic_socket_set_ecn_options(sockets->s_socket[i], sock_af[i], &recv_set, &send_set);
+                DBG_PRINTF("Enabling ECN at server side: recv_set %x send_set %x\n", recv_set, send_set);
             }
         }
     }

@@ -141,6 +141,7 @@ int socket_test()
 {
     int ret = 0;
     int test_port = 12345;
+    int ecn_enabled = 0;
     picoquic_server_sockets_t server_sockets;
 #ifdef _WINDOWS
     WSADATA wsaData;
@@ -151,7 +152,7 @@ int socket_test()
     }
 #endif
     /* Open server sockets */
-    ret = picoquic_open_server_sockets(&server_sockets, test_port);
+    ret = picoquic_open_server_sockets(&server_sockets, test_port, ecn_enabled);
 
     if (ret == 0) {
         /* For a series of server addresses, do a ping pong test */
@@ -176,7 +177,8 @@ int socket_test()
 int socket_ecn_test_one(int af_domain)
 {
     int ret = 0;
-    SOCKET_TYPE fd = picoquic_open_client_socket(af_domain);
+    int ecn_enabled = 0;
+    SOCKET_TYPE fd = picoquic_open_client_socket(af_domain, ecn_enabled);
 
     if (fd == INVALID_SOCKET) {
         ret = -1;

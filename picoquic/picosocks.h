@@ -114,9 +114,9 @@ typedef struct st_picoquic_server_sockets_t {
 
 int picoquic_get_local_address(SOCKET_TYPE sd, struct sockaddr_storage * addr);
 
-SOCKET_TYPE picoquic_open_client_socket(int af);
+SOCKET_TYPE picoquic_open_client_socket(int af, int ecn_enabled);
 
-int picoquic_open_server_sockets(picoquic_server_sockets_t* sockets, int port);
+int picoquic_open_server_sockets(picoquic_server_sockets_t* sockets, int port, int ecn_enabled);
 
 void picoquic_close_server_sockets(picoquic_server_sockets_t* sockets);
 

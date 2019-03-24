@@ -164,7 +164,7 @@ int quic_server(const char* server_name, int server_port,
     const char* pem_cert, const char* pem_key,
     int just_once, int do_hrr, picoquic_connection_id_cb_fn cnx_id_callback,
     void* cnx_id_callback_ctx, uint8_t reset_seed[PICOQUIC_RESET_SECRET_SIZE],
-    int dest_if, int mtu_max, uint32_t proposed_version)
+    int dest_if, int mtu_max, uint32_t proposed_version, int ecn_enabled)
 {
     /* Start: start the QUIC process with cert and key files */
     int ret = 0;
@@ -187,7 +187,7 @@ int quic_server(const char* server_name, int server_port,
     int64_t delay_max = 10000000;
 
     /* Open a UDP socket */
-    ret = picoquic_open_server_sockets(&server_sockets, server_port);
+    ret = picoquic_open_server_sockets(&server_sockets, server_port, ecn_enabled);
 
     /* Wait for packets and process them */
     if (ret == 0) {
@@ -390,14 +390,14 @@ static const size_t test_scenario_nb = sizeof(test_scenario) / sizeof(picoquic_d
  * actual IP address.
  */
 int quic_client_migrate(picoquic_cnx_t * cnx, SOCKET_TYPE * fd, struct sockaddr * server_address, 
-    int force_migration, FILE * F_log) 
+    int force_migration, int ecn_enabled, FILE * F_log)
 {
     int ret = 0;
 
     if (force_migration != 2) {
         SOCKET_TYPE fd_m;
 
-        fd_m = picoquic_open_client_socket(server_address->sa_family);
+        fd_m = picoquic_open_client_socket(server_address->sa_family, ecn_enabled);
         if (fd_m == INVALID_SOCKET) {
             fprintf(stdout, "Could not open new socket.\n");
             if (F_log != stdout && F_log != stderr)
@@ -484,7 +484,7 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
     const char * alpn, const char * root_crt,
     uint32_t proposed_version, int force_zero_share, int force_migration,
     int nb_packets_before_key_update, int mtu_max, FILE* F_log,
-    int client_cnx_id_length, char * client_scenario_text)
+    int client_cnx_id_length, char * client_scenario_text, int ecn_enabled)
 {
     /* Start: start the QUIC process with cert and key files */
     int ret = 0;
@@ -548,7 +548,7 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
     /* Open a UDP socket */
 
     if (ret == 0) {
-        fd = picoquic_open_client_socket(server_address.ss_family);
+        fd = picoquic_open_client_socket(server_address.ss_family, ecn_enabled);
         if (fd == INVALID_SOCKET) {
             ret = -1;
         }
@@ -773,7 +773,7 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
                         (cnx_client->cnxid_stash_first != NULL || force_migration == 1)
                         && picoquic_get_cnx_state(cnx_client) == picoquic_state_ready) {
                         int mig_ret = quic_client_migrate(cnx_client, &fd,
-                            (struct sockaddr *)&server_address, force_migration, F_log);
+                            (struct sockaddr *)&server_address, force_migration, ecn_enabled, F_log);
 
                         migration_started = 1;
                         address_updated = 0;
@@ -992,6 +992,7 @@ void usage()
     fprintf(stderr, "  -u nb                 trigger key update after receiving <nb> packets on client\n");
     fprintf(stderr, "  -v version            Version proposed by client, e.g. -v ff000012\n");
     fprintf(stderr, "  -z                    Set TLS zero share behavior on client, to force HRR.\n");
+    fprintf(stderr, "  -E                    Activate ECN over the connection.\n");
     fprintf(stderr, "  -1                    Once: close the server after processing 1 connection.\n");
     fprintf(stderr, "  -S solution_dir       Set the path to the source files to find the default files\n");
     fprintf(stderr, "  -I length             Length of CNX_ID used by the client, default=8\n");
@@ -1026,6 +1027,7 @@ int main(int argc, char** argv)
     uint32_t proposed_version = 0;
     int is_client = 0;
     int just_once = 0;
+    int ecn_enabled = 0;
     int do_hrr = 0;
     int force_zero_share = 0;
     int force_migration = 0;
@@ -1049,7 +1051,7 @@ int main(int argc, char** argv)
 
     /* Get the parameters */
     int opt;
-    while ((opt = getopt(argc, argv, "c:k:p:u:v:1rhzf:i:s:e:l:m:n:a:t:S:I:")) != -1) {
+    while ((opt = getopt(argc, argv, "c:k:p:u:v:1Erhzf:i:s:e:l:m:n:a:t:S:I:")) != -1) {
         switch (opt) {
         case 'c':
             server_cert_file = optarg;
@@ -1077,6 +1079,9 @@ int main(int argc, char** argv)
             break;
         case '1':
             just_once = 1;
+            break;
+        case 'E':
+            ecn_enabled = 1;
             break;
         case 'r':
             do_hrr = 1;
@@ -1204,7 +1209,7 @@ int main(int argc, char** argv)
             server_cert_file, server_key_file, just_once, do_hrr,
             (cnx_id_cbdata == NULL) ? NULL : picoquic_connection_id_callback,
             (cnx_id_cbdata == NULL) ? NULL : (void*)cnx_id_cbdata,
-            (uint8_t*)reset_seed, dest_if, mtu_max, proposed_version);
+            (uint8_t*)reset_seed, dest_if, mtu_max, proposed_version, ecn_enabled);
         printf("Server exit with code = %d\n", ret);
     } else {
         FILE* F_log = NULL;
@@ -1233,7 +1238,7 @@ int main(int argc, char** argv)
         /* Run as client */
         printf("Starting PicoQUIC connection to server IP = %s, port = %d\n", server_name, server_port);
         ret = quic_client(server_name, server_port, sni, alpn, root_trust_file, proposed_version, force_zero_share, 
-            force_migration, nb_packets_before_update, mtu_max, F_log, client_cnx_id_length, client_scenario);
+            force_migration, nb_packets_before_update, mtu_max, F_log, client_cnx_id_length, client_scenario, ecn_enabled);
 
         printf("Client exit with code = %d\n", ret);
 
