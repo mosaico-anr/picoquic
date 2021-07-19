@@ -292,6 +292,7 @@ int picoquic_demo_client_callback(picoquic_cnx_t* cnx,
                         }
                         else if (available_data > 0) {
                             ret = (fwrite(bytes, 1, available_data, stream_ctx->F) > 0) ? 0 : -1;
+                            printf("Server sent: %s", bytes);
                             stream_ctx->received_length += available_data;
                             bytes += available_data;
                         }
@@ -301,6 +302,7 @@ int picoquic_demo_client_callback(picoquic_cnx_t* cnx,
                 case picoquic_alpn_http_0_9:
                 default:
                     ret = (fwrite(bytes, 1, length, stream_ctx->F) > 0) ? 0 : -1;
+                    printf("Server sent: %s", bytes);
                     stream_ctx->received_length += length;
                     break;
                 }
@@ -337,6 +339,7 @@ int picoquic_demo_client_callback(picoquic_cnx_t* cnx,
         break;
     case picoquic_callback_application_close: /* Received application close */
         fprintf(stdout, "Received a request to close the application.\n");
+        picoquic_demo_client_start_streams(cnx, ctx, fin_stream_id);
         break;
     case picoquic_callback_stream_gap:
         /* Gap indication, when unreliable streams are supported */

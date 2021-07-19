@@ -129,7 +129,11 @@ commit `5370eaadbf3e138dc9319a742488edccf40b5a12`, dated `Wed Dec 19 22:07:48 20
 
 
 
- 
+# BuzzRage notes:
+
+What was done:
+- Modify `int picoquic_h09_server_callback()` to send a precise quantity of Bytes
 
 
-
+TODO:
+- Check in `int picoquic_h09_server_callback()` if modifications are in the good place ( "if data generated, just send it. Otherwise, just FIN the stream" )

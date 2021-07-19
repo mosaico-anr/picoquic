@@ -460,6 +460,7 @@ int h3zero_server_callback(picoquic_cnx_t* cnx,
  * generated content */
 
 static const char* bad_request_message = "<html><head><title>Bad Request</title></head><body>Bad request. Why don't you try \"GET /doc-456789.html\"?</body></html>";
+static const char* burst_request_message;
 
 static char* strip_endofline(char* buf, size_t bufmax, char const* line)
 {
@@ -666,8 +667,20 @@ int picoquic_h09_server_callback(picoquic_cnx_t* cnx,
                 printf("%" PRIx64 ": ", picoquic_val64_connection_id(picoquic_get_logging_cnxid(cnx)));
                 printf("Server CB, Stream: %" PRIu64 ", Processing command: %s\n",
                     stream_id, strip_endofline(buf, sizeof(buf), (char*)&stream_ctx->command));
-                picoquic_add_to_stream(cnx, stream_id, ctx->buffer,
-                    stream_ctx->response_length, 1);
+
+		int local_MTU = 1454;
+		int nb_Mbps = 1;
+		int data_size = (nb_Mbps*1000000/8); // In Bytes
+		int data_seg_size = 1*local_MTU;
+
+		uint8_t *data = malloc(data_size*sizeof(uint8_t));
+		memset(data, 'a', data_size);
+
+		printf("Data size: %d bytes, nb_Mbps: %d, local_MTU: %d\n", sizeof(uint8_t)*data_size, nb_Mbps, local_MTU);
+
+		// Max data_size = 65535B - 20B IP Header - 8B UDP Header = 65507B
+                picoquic_add_to_stream(cnx, stream_id, data, data_size, 1);
+//                picoquic_add_to_stream(cnx, stream_id, ctx->buffer, stream_ctx->response_length, 1);
             }
         }
         else if (stream_ctx->response_length == 0) {
