@@ -131,9 +131,14 @@ commit `5370eaadbf3e138dc9319a742488edccf40b5a12`, dated `Wed Dec 19 22:07:48 20
 
 # BuzzRage notes:
 
-What was done:
-- Modify `int picoquic_h09_server_callback()` to send a precise quantity of Bytes
+## What was done:
+* In `picoquic/demoserver.c`:
+	* Modification in `int picoquic_h09_server_callback()` to send a precise quantity of Bytes
+* In `picoquic/democlient.c`:
+	* Prints to monitor sent data
+	* Loop request
+* In `picoquic/prague.c`:
+	* Set congestion windows reduction to 0
 
-
-TODO:
+## TODO:
 - Check in `int picoquic_h09_server_callback()` if modifications are in the good place ( "if data generated, just send it. Otherwise, just FIN the stream" )
