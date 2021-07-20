@@ -5,6 +5,7 @@ PICODIR="./"
 function rebuild() {
     local PICODIR=$1
 
+    echo "Current dir: $PICODIR"
     cd $PICODIR
     cmake .
     make

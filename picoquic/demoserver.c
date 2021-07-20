@@ -668,18 +668,32 @@ int picoquic_h09_server_callback(picoquic_cnx_t* cnx,
                 printf("Server CB, Stream: %" PRIu64 ", Processing command: %s\n",
                     stream_id, strip_endofline(buf, sizeof(buf), (char*)&stream_ctx->command));
 
-		int local_MTU = 1454;
-		int nb_Mbps = 1;
-		int data_size = (nb_Mbps*1000000/8); // In Bytes
-		int data_seg_size = 1*local_MTU;
+                int local_MTU = 1454;
+                int nb_Mbps = 1;
+                
+                // Max data_size = 65535B - 20B IP Header - 8B UDP Header = 65507B
+                int data_size = (nb_Mbps*1000000/8); // In Bytes
+                int data_seg_size = 1*local_MTU;
+                int nb_segs = data_size/data_seg_size;
 
-		uint8_t *data = malloc(data_size*sizeof(uint8_t));
-		memset(data, 'a', data_size);
+                uint8_t *data = malloc(data_size*sizeof(uint8_t));
+                memset(data, 'a', data_size);
 
-		printf("Data size: %d bytes, nb_Mbps: %d, local_MTU: %d\n", sizeof(uint8_t)*data_size, nb_Mbps, local_MTU);
+                printf("Data size: %d bytes, sent in %d to obtain %d Mbps, local_MTU: %d\n", sizeof(uint8_t)*data_size, nb_segs, nb_Mbps, local_MTU);
 
-		// Max data_size = 65535B - 20B IP Header - 8B UDP Header = 65507B
-                picoquic_add_to_stream(cnx, stream_id, data, data_size, 1);
+                for(int i=0; i < nb_segs; i++){
+                    uint8_t *data_chunk = malloc(data_seg_size*sizeof(uint8_t));
+                    memset(data_chunk, 'a', data_seg_size);
+                    picoquic_add_to_stream(cnx, stream_id, data_chunk, data_seg_size, 1);
+                    sleep(1/nb_segs);
+                }
+                
+                if(data_size%data_seg_size != 0){
+                    int last_data_chunk_size = data_size%data_seg_size;
+                    uint8_t *last_data_chunk = malloc(last_data_chunk_size*sizeof(uint8_t));
+                    memset(last_data_chunk, 'a', last_data_chunk_size);
+                    picoquic_add_to_stream(cnx, stream_id, last_data_chunk, last_data_chunk_size, 1);
+                }
 //                picoquic_add_to_stream(cnx, stream_id, ctx->buffer, stream_ctx->response_length, 1);
             }
         }
