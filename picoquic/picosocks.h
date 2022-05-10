@@ -108,6 +108,10 @@
 
 #define PICOQUIC_NB_SERVER_SOCKETS 2
 
+#define PICOQUIC_ECN_ECT_0 2
+#define PICOQUIC_ECN_ECT_1 1
+#define PICOQUIC_ECN 1
+
 typedef struct st_picoquic_server_sockets_t {
     SOCKET_TYPE s_socket[PICOQUIC_NB_SERVER_SOCKETS];
 } picoquic_server_sockets_t;

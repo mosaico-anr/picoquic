@@ -144,6 +144,38 @@ void picoquic_log_packet_address(FILE* F, uint64_t log_cnxid64, picoquic_cnx_t* 
         }
     }
 
+    if (cnx != NULL && (int)cnx->nb_paths > 1 && receiving) {
+        double duration_usec = (double)(current_time - cnx->last_measurement_time);
+        double receive_rate_mps = 8.0*((double)cnx->data_received - cnx->last_measurement_data) / duration_usec;
+        picoquic_path_t * path_x = cnx->path[2];
+        fprintf(F, " MOSAICO,");
+        fprintf(F, "nb_paths: %d,", (int)cnx->nb_paths);
+        fprintf(F, "cwin: %d,", (int)path_x->cwin);
+        fprintf(F, "send_mtu: %u, ", path_x->send_mtu);
+        fprintf(F, "flight: %d,", (int)path_x->bytes_in_transit);
+        fprintf(F, "nb_ret: %llu,", (unsigned long long)cnx->nb_retransmission_total);
+        fprintf(F, "data_sent: %d,", (int)cnx->data_sent);
+        fprintf(F, "data_received: %d,", (int)cnx->data_received);
+        fprintf(F, "rcv_rate_Mbps: %f,", receive_rate_mps);
+        fprintf(F, "pacing_pkt_time_microsec: %llu, ", (unsigned long long)cnx->path[0]->pacing_packet_time_microsec);
+        fprintf(F, "rtt_min: %d,", (int)path_x->rtt_min);
+        for (int i = 0; i < (int)cnx->nb_paths ; i++) {
+            if (cnx->path[i]->smoothed_rtt != PICOQUIC_INITIAL_RTT) {
+                fprintf(F, "rtt%d: %lu,", i, cnx->path[i]->smoothed_rtt);
+            }
+        }
+        fprintf(F, "rtt_var: %d,", (int)path_x->rtt_variant);
+        fprintf(F, "max_ack_delay: %d,", (int)path_x->max_ack_delay);
+        fprintf(F, "state: %d,", (int)cnx->cnx_state);
+        fprintf(F, "send_seq: %llu, ", (unsigned long long)cnx->pkt_ctx[picoquic_packet_context_application].send_sequence);
+        fprintf(F, "highest_ack: %lld, ", (long long)((int64_t)cnx->pkt_ctx[picoquic_packet_context_application].highest_acknowledged));
+        fprintf(F, "highest_ack_time: %llu, ", (unsigned long long)cnx->pkt_ctx[picoquic_packet_context_application].highest_acknowledged_time);
+        fprintf(F, "latest_time_ack: %llu, ", (unsigned long long)cnx->pkt_ctx[picoquic_packet_context_application].latest_time_acknowledged);
+
+        cnx->last_measurement_time = current_time;
+        cnx->last_measurement_data = cnx->data_received;
+    }
+
     if (cnx != NULL) {
         delta_t = current_time - cnx->start_time;
         time_sec = delta_t / 1000000;

@@ -614,6 +614,9 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
             (struct sockaddr*)&server_address, current_time,
             proposed_version, sni, alpn, 1);
 
+        cnx_client->last_measurement_time = cnx_client->start_time;
+        cnx_client->last_measurement_data = cnx_client->data_received;
+
         if (cnx_client == NULL) {
             ret = -1;
         }
@@ -821,14 +824,14 @@ int quic_client(const char* ip_address_text, int server_port, const char * sni,
 
                                 if (duration_usec > 0) {
                                     double receive_rate_mbps = 8.0*((double)picoquic_get_data_received(cnx_client)) / duration_usec;
-                                    fprintf(stdout, "Received %llu bytes in %f seconds, %f Mbps.\n",
-                                        (unsigned long long)picoquic_get_data_received(cnx_client),
-                                        duration_usec/1000000.0, receive_rate_mbps);
+                                    fprintf(stdout, "Received %llu bytes in %f seconds, %f Mbps.\n nb_retransmission_total: %llu \n",
+                                            (unsigned long long)picoquic_get_data_received(cnx_client),
+                                            duration_usec / 1000000.0, receive_rate_mbps, (unsigned long long)cnx_client->nb_retransmission_total);
                                     if (F_log != stdout && F_log != stderr)
                                     {
-                                        fprintf(F_log, "Received %llu bytes in %f seconds, %f Mbps.\n",
+                                        fprintf(F_log, "Received %llu bytes in %f seconds, %f Mbps.\n nb_retransmission_total: %llu \n",
                                             (unsigned long long)picoquic_get_data_received(cnx_client),
-                                            duration_usec / 1000000.0, receive_rate_mbps);
+                                            duration_usec / 1000000.0, receive_rate_mbps, (unsigned long long)cnx_client->nb_retransmission_total);
                                     }
                                 }
                             }

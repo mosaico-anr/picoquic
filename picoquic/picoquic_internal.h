@@ -708,6 +708,9 @@ typedef struct st_picoquic_cnx_t {
     /* Liveness detection */
     uint64_t latest_progress_time; /* last local time at which the connection progressed */
 
+    /* Used for logging purpose */
+    uint64_t last_measurement_time;
+    uint64_t last_measurement_data;
 
     /* Sequence and retransmission state */
     picoquic_packet_context_t pkt_ctx[picoquic_nb_packet_context];

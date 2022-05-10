@@ -100,7 +100,7 @@ int picoquic_socket_set_ecn_options(SOCKET_TYPE sd, int af, int * recv_set, int 
         /* Request setting ECN_1 in outgoing packets */
 #if defined(IPV6_TCLASS)
         {
-            DWORD ecn = 1;
+            DWORD ecn = PICOQUIC_ECN;
             /* Request setting ECN_1 in outgoing packets */
             ret = setsockopt(sd, IPPROTO_IPV6, IPV6_TCLASS, (char *)&ecn, sizeof(ecn));
             if (ret < 0) {
@@ -147,7 +147,7 @@ int picoquic_socket_set_ecn_options(SOCKET_TYPE sd, int af, int * recv_set, int 
     else {
 #if defined(IP_TOS)
         {
-            DWORD ecn = 1;
+            DWORD ecn = PICOQUIC_ECN;
             /* Request setting ECN_1 in outgoing packets */
             ret = setsockopt(sd, IPPROTO_IP, IP_TOS, (char *)&ecn, sizeof(ecn));
             if (ret < 0) {
@@ -203,7 +203,7 @@ int picoquic_socket_set_ecn_options(SOCKET_TYPE sd, int af, int * recv_set, int 
     if (af == AF_INET6) {
 #if defined(IPV6_TCLASS)
         {
-            unsigned int ecn = 2; /* ECN_ECT_0 */
+            unsigned int ecn = PICOQUIC_ECN_ECT_0; /* ECN_ECT_0 */
             /* Request setting ECN_1 in outgoing packets */
             if (setsockopt(sd, IPPROTO_IPV6, IPV6_TCLASS, &ecn, sizeof(ecn)) < 0) {
                 DBG_PRINTF("setsockopt IPV6_TCLASS (0x%x) fails, errno: %d\n", ecn, errno);
@@ -241,7 +241,7 @@ int picoquic_socket_set_ecn_options(SOCKET_TYPE sd, int af, int * recv_set, int 
     else {
 #if defined(IP_TOS)
         {
-            unsigned int ecn = 1;
+            unsigned int ecn = PICOQUIC_ECN;
             /* Request setting ECN_1 in outgoing packets */
             if (setsockopt(sd, IPPROTO_IP, IP_TOS, &ecn, sizeof(ecn)) < 0) {
                 DBG_PRINTF("setsockopt IPv4 IP_TOS (0x%x) fails, errno: %d\n", ecn, errno);
@@ -295,7 +295,7 @@ SOCKET_TYPE picoquic_open_client_socket(int af, int ecn_enabled)
             int send_set = 0;
 
             picoquic_socket_set_ecn_options(sd, af, &recv_set, &send_set);
-            DBG_PRINTF("Enabling ECN at client side: recv_set %x send_set %x\n", recv_set, send_set);
+            DBG_PRINTF("Enabling ECN at client side: recv_set %x send_set %x with %x codepoint\n", recv_set, send_set, PICOQUIC_ECN);
         }
     }
     else {
