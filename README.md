@@ -127,7 +127,19 @@ conforms to draft-17, and will only negotiate support for the corresponding vers
 The previous version, draft-16, can be tested by downloading from Github the code at the
 commit `5370eaadbf3e138dc9319a742488edccf40b5a12`, dated `Wed Dec 19 22:07:48 2018 -0800`.
 
+# Note about this fork (`buzzrage/picoquic-draft-17`)
 
+This fork is up to date with draft-17 of QUIC specification. It corresponds to the commit of private-octopus that was used by the L4STeam to implement the Prague congetion control in QUIC. This branch is here as a reference point to easily see changes between **this branch** (baseline) and other features implemented in **other branches** (such as experimental network attacks).
+
+To see changes after a `git clone`, you can run:
+
+```
+git checkout picoquic-draft-17
+git branch --list -a # To see all branches
+git diff origin/picoquic-draft-17 origin/<branch you want to compare with>
+```
+
+The branch `main` is up to date with the version 34 of the QUIC specification, more precisely it corresponds to the commit `ad5b201db3975e4fc66677aa3c973a7f7ca6cfb8` of the `private-octopus` repository. 
 
  
 
