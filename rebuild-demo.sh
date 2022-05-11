@@ -15,7 +15,7 @@ function print_usage(){
     echo -e "where:"
     echo -e "\t- <direction> is \"srv\" or \"cli\" "
     echo -e "\t- <ECN_MODE> = [ noecn | classic | l4s ]"
-    echo -e "\t- <FLOW_TYPE> = [ legit | unrespECN | bursts | nopacing ]"
+    echo -e "\t- <FLOW_TYPE> = [ legit | unrespECN | burst | nopacing ]"
     exit 1
 }
 

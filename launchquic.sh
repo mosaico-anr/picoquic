@@ -7,7 +7,7 @@ function print_usage(){
     echo -e "\t- <direction> is \"srv\" or \"cli\" "
     echo -e "\t- <ECN_MODE> = [ noecn | classic | l4s ]"
     echo -e "\t- <port> is the port to use"
-    echo -e "\t- <FLOW_TYPE> = [ legit | unrespECN | bursts | nopacing ]"
+    echo -e "\t- <FLOW_TYPE> = [ legit | unrespECN | burst | nopacing ]"
     echo -e "\t- <ARGS> depends on <direction>:"
     echo -e "\t\t- if <direction>=\"srv\": <ARGS> is \"verbose\" or \"mute\" mode. Default to \"mute\"."
     echo -e "\t\t- if <direction>=\"cli\": <ARGS> depends on <FLOW_TYPE>, it's the weight of data to request. Must be higher for unrespECN than for burst. The verbose argument can also be provided after <ARGS>"
