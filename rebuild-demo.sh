@@ -11,7 +11,7 @@ unrespECNDIR="xp-unrespECN"
 
 PRES="\e[1;40m$(hostname)\e[0m:\e[32m$0\e[0m"
 function print_usage(){
-    echo -e "$PRES: \n\033[0;31mError arguments. Usage: ./$0 <direction> <ECN_MODE> <FLOW_TYPE>"
+    echo -e "$PRES: Usage: ./$0 <direction> <ECN_MODE> <FLOW_TYPE>"
     echo -e "where:"
     echo -e "\t- <direction> is \"srv\" or \"cli\" "
     echo -e "\t- <ECN_MODE> = [ noecn | classic | l4s ]"
@@ -22,7 +22,7 @@ function print_usage(){
 
 if [ -z $1 ]
 then 
-    echo -e "$PRES: Invalid arguments. Rebuilding aborted."
+    echo -e "$PRES: \033[0;31mInvalid arguments. Rebuilding aborted.\e[0m"
     print_usage
 elif [ $1 == "cli" ]
 then
@@ -68,7 +68,7 @@ then
         ;;
     esac
 else 
-    echo -e "$PRES: Invalid $1 argument. Rebuilding aborted."
+    echo -e "$PRES: \033[0;31mInvalid argument: $1. Rebuilding aborted.\e[0m"
     print_usage
 fi
 
@@ -94,9 +94,11 @@ function rebuild() {
     fi
     
     mkdir -p ./build/
-    cmake -B ./build/
-    make -C ./build/
-
+    cd ./build/
+    cmake ..
+    make
+    cd ..
+    
     if [ $SIDE == "srv" ]
     then         
         echo -e "\n$PRES: Prague configuration for reduction:\n"
