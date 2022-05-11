@@ -1,106 +1,29 @@
 #!/bin/bash
 
-# TODO changer par des git checkout
-oldDIR="/home/$USER/MOSAICO/picoquic/picoquic-quic-prague/"
-vanillaDIR="/home/$USER/MOSAICO/picoquic/picoquic-vanilla-private-octopus/"
-l4sTeamDIR="/home/$USER/MOSAICO/picoquic/picoquic-prague-L4STeam/"
-legitDIR="/home/$USER/MOSAICO/picoquic/picoquic-prague-legit/"
-burstDIR="/home/$USER/MOSAICO/picoquic/picoquic-prague-burst/"
-#unrespECNDIR="/home/$USER/MOSAICO/picoquic/picoquic-quic-prague_atk/"
-nopacingDIR="/home/$USER/MOSAICO/picoquic/picoquic-prague-nopacing/"
-unrespECNDIR="/home/$USER/MOSAICO/picoquic/picoquic-prague-unrespECN/"
-
-DEF_PORT="4444"
 PRES="\e[1;40m$(hostname)\e[0m:\e[32m$0\e[0m"
-
 function print_usage(){
-    echo -e "$PRES: \n\033[0;31mError aguments. Usage: ./$0 <direction> <ECN_MODE> <port> <FLOW_TYPE> <ARGS>"
+    echo -e "$PRES: Usage: ./$0 <direction> <ECN_MODE> <port> <FLOW_TYPE> <ARGS>"
     echo -e "where:"
     echo -e "\t- <direction> is \"srv\" or \"cli\" "
     echo -e "\t- <ECN_MODE> = [ noecn | classic | l4s ]"
     echo -e "\t- <port> is the port to use"
     echo -e "\t- <FLOW_TYPE> = [ legit | unrespECN | bursts | nopacing ]"
-    echo -e "\t- <ARGS> depends of <FLOW_TYPE>, it's the weight of data to request. Must be higher for unrespECN than for burst."
+    echo -e "\t- <ARGS> depends on <direction>:"
+    echo -e "\t\t- if <direction>=\"srv\": <ARGS> is \"verbose\" or \"mute\" mode. Default to \"mute\"."
+    echo -e "\t\t- if <direction>=\"cli\": <ARGS> depends on <FLOW_TYPE>, it's the weight of data to request. Must be higher for unrespECN than for burst. The verbose argument can also be provided after <ARGS>"
     exit 1
 }
 
-# pour lancer le telechargement d'un fichier d'1Mo
-## ./picoquicdemo -E -C prague -l output.log -n serv1 10.35.1.79 4444 "doc-1234567.html"
-
-function launch_srv(){
-    local PICODIR=$1
-    local ECN=$2
-    local CCA=$3
-    local PORT=$4
-
-    cd $PICODIR
-    
-    ### Server
-    # -E            Utilisation d'ECN
-    # -C prague     Utilisation de prague pour le CCA
-    # -p 4444       Précision du port d'écoute
-    # Plus d'infos sur ./picoquicdemo -h
-    CMD="./picoquicdemo $ECN -C $CCA -p $PORT"
-    echo -e "$PRES: Launched command: $CMD \nFrom directory: $PICODIR"
-
-    if [ $VERBOSE == "mute" ]; then
-        eval $CMD &>/dev/null
-    else
-	    eval $CMD
-    fi
-}
-
-function launch_cli(){
-    local SRV_IP="10.35.1.79"
-    local SRV_NAME="quicsrv"
-    local PICODIR=$1
-    local ECN=$2
-    local CCA=$3
-    local PORT=$4
-    local WEIGHT=$5
-    local TS=$(date +%Y-%m-%d-%H%M)
-    
-    cd $PICODIR
-    rm output.log
-    
-    if [ $PICODIR != $burstDIR ]; then
-        ### Client
-        # -n SRV_NAME SRV_IP        Nom et IP du serveur
-        # -l output.log             Fichier de log
-        CMD="./picoquicdemo $ECN -C $CCA -l output-$TS.log -n $SRV_NAME $SRV_IP $PORT doc-$WEIGHT.html"
-        echo -e "$PRES: Launching command: $CMD \nFrom directory: $PICODIR"
-        if [ $VERBOSE == "verbose" ]; then
-            eval $CMD
-        else
-            eval $CMD &> /dev/null
-        fi
-    else
-        local cpt=0
-        CMD="./picoquicdemo $ECN -C $CCA -l output.tmp -n $SRV_NAME $SRV_IP $PORT doc-$WEIGHT.html"
-        echo -e "$PRES: Launching command: $CMD \nFrom directory: $PICODIR"
-        
-        until [ $cpt -eq 5 ]
-        do
-            CURR_TS=$(date +%s%6N)
-            if [ $VERBOSE == "verbose" ]; then
-                eval $CMD
-            else
-                eval $CMD &> /dev/null
-            fi
-            sed -i "1 s/^/Timestamp=$CURR_TS,\n/" output.tmp
-            cat output.tmp >> output.log
-            rm output.tmp
-            ((cpt++))
-        done
-    fi
-}
+CURR_DIR=$(pwd)
 
 if [[ $# -gt 6 || $# -lt 4 ]]
 then
+    echo -e "\n\033[0;31mError arguments.\e[0m"
     print_usage
 fi
 
 if [ -z $1 ]; then
+    echo -e "\n\033[0;31mError arguments.\e[0m"    
     print_usage
 else
     SIDE=$1
@@ -132,7 +55,7 @@ case $ECN_MODE in
 esac
 
 if [ -z $3 ]; then
-    PORT=$DEF_PORT
+    PORT="4444"
 else
     PORT=$3
 fi
@@ -150,6 +73,78 @@ else
 fi
 
 
+# pour lancer le telechargement d'un fichier d'1Mo
+## ./picoquicdemo -E -C prague -l output.log -n serv1 10.35.1.79 4444 "doc-1234567.html"
+
+function launch_srv(){
+    local PICODIR=$1
+    local ECN=$2
+    local CCA=$3
+    local PORT=$4
+
+    git checkout $PICODIR
+    
+    ### Server
+    # -E            Utilisation d'ECN
+    # -C prague     Utilisation de prague pour le CCA
+    # -p 4444       Précision du port d'écoute
+    # Plus d'infos sur ./picoquicdemo -h
+    CMD="./build/picoquicdemo $ECN -C $CCA -p $PORT"
+    echo -e "$PRES: Launched command: $CMD \nFrom directory: $PICODIR"
+
+    if [ $VERBOSE == "verbose" ]; then
+        eval $CMD
+    else
+	    eval $CMD &>/dev/null
+    fi
+}
+
+function launch_cli(){
+    local SRV_IP="10.35.1.79"
+    local SRV_NAME="quicsrv"
+    local PICODIR=$1
+    local ECN=$2
+    local CCA=$3
+    local PORT=$4
+    local WEIGHT=$5
+    local TS=$(date +%Y-%m-%d-%H%M)
+    
+    git checkout $PICODIR
+    rm output.log
+    
+    if [ $PICODIR != $burstDIR ]; then
+        ### Client
+        # -n SRV_NAME SRV_IP        Nom et IP du serveur
+        # -l output.log             Fichier de log
+        CMD="./build/picoquicdemo $ECN -C $CCA -l output-$TS.log -n $SRV_NAME $SRV_IP $PORT doc-$WEIGHT.html"
+        echo -e "$PRES: Launching command: $CMD \nFrom directory: $PICODIR"
+        if [ $VERBOSE == "verbose" ]; then
+            eval $CMD
+        else
+            eval $CMD &> /dev/null
+        fi
+    else
+        local cpt=0
+        CMD="./build/picoquicdemo $ECN -C $CCA -l output.tmp -n $SRV_NAME $SRV_IP $PORT doc-$WEIGHT.html"
+        echo -e "$PRES: Launching command: $CMD \nFrom directory: $PICODIR"
+        
+        until [ $cpt -eq 5 ]
+        do
+            CURR_TS=$(date +%s%6N)
+            if [ $VERBOSE == "verbose" ]; then
+                eval $CMD
+            else
+                eval $CMD &> /dev/null
+            fi
+            sed -i "1 s/^/Timestamp=$CURR_TS,\n/" output.tmp
+            cat output.tmp >> output.log
+            rm output.tmp
+            ((cpt++))
+        done
+    fi
+}
+
+
 #
 # srv: # Pour unrespECN, simplement toggle la "reduction"
 #     flow-type = [ legit | unrespECN ]
@@ -159,6 +154,17 @@ fi
 #     flow-type = [ legit | unrespECN | burst ]
 #     ECN_mode = [ noecn | classic | l4s ]
 # Peut-être besoin de fusionner launquic.sh avec rebuild-demo.sh
+
+
+oldDIR="/home/$USER/MOSAICO/picoquic/picoquic-quic-prague/"
+#unrespECNDIR="/home/$USER/MOSAICO/picoquic/picoquic-quic-prague_atk/"
+vanillaDIR="picoquic-RFC9000"
+l4sTeamDIR="quic-prague-L4STeam"
+legitDIR="xp-legit"
+burstDIR="xp-burst"
+nopacingDIR="xp-nopacing"
+unrespECNDIR="xp-unrespECN"
+
 
 if [ $SIDE == "srv" ]
 then
@@ -173,6 +179,9 @@ then
         ARGS="$nopacingDIR $ECN $CCA $PORT"
         ;;
     "vanilla")
+        ARGS="$vanillaDIR $ECN $CCA $PORT"
+        ;;
+    "L4STeam")
         ARGS="$l4sTeamDIR $ECN $CCA $PORT"
         ;;
     *)
@@ -197,6 +206,9 @@ then
         ARGS="$burstDIR $ECN $CCA $PORT $F_SIZE"
         ;;
     "vanilla")
+        ARGS="$vanillaDIR $ECN $CCA $PORT"
+        ;;
+    "L4STeam")
         ARGS="$l4sTeamDIR $ECN $CCA $PORT $F_SIZE"
         ;;
     *)
@@ -211,5 +223,8 @@ then
     fi
 
     launch_cli $ARGS $VERBOSE
+else
+    echo -e "$PRES: \033[0;31mInvalid argument $SIDE: unknown direction.\e[0m"
+    print_usage
 fi
 
