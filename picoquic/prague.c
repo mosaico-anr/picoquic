@@ -44,7 +44,7 @@ typedef struct st_picoquic_prague_state_t {
     uint64_t acked_bytes_total;
     uint32_t ce_state;
     uint64_t loss_cwnd;
-    uint64_t last_update_time; 
+    uint64_t last_update_time;
 
     uint64_t residual_ack;
     uint64_t ssthresh;
@@ -83,16 +83,16 @@ static void picoquic_newreno_enter_recovery(picoquic_path_t* path_x,
     picoquic_prague_state_t* pr_state,
     uint64_t current_time)
 {
-    pr_state->ssthresh = path_x->cwin / 2;
+//     pr_state->ssthresh = path_x->cwin / 2;
     if (pr_state->ssthresh < PICOQUIC_CWIN_MINIMUM) {
         pr_state->ssthresh = PICOQUIC_CWIN_MINIMUM;
     }
 
     if (notification == picoquic_congestion_notification_timeout) {
-        path_x->cwin = PICOQUIC_CWIN_MINIMUM;
+//         path_x->cwin = PICOQUIC_CWIN_MINIMUM;
         pr_state->alg_state = picoquic_prague_alg_slow_start;
     } else {
-        path_x->cwin = pr_state->ssthresh;
+//         path_x->cwin = pr_state->ssthresh;
         pr_state->alg_state = picoquic_prague_alg_congestion_avoidance;
     }
 
