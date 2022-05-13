@@ -527,13 +527,13 @@ uint32_t picoquic_protect_packet(picoquic_cnx_t* cnx,
  */
 static void picoquic_update_pacing_bucket(picoquic_path_t * path_x, uint64_t current_time)
 {
-    if (current_time > path_x->pacing_evaluation_time) {
-        path_x->pacing_bucket_nanosec += (current_time - path_x->pacing_evaluation_time) << 10;
-        path_x->pacing_evaluation_time = current_time;
-        if (path_x->pacing_bucket_nanosec > path_x->pacing_bucket_max) {
-            path_x->pacing_bucket_nanosec = path_x->pacing_bucket_max;
-        }
-    }
+//     if (current_time > path_x->pacing_evaluation_time) {
+//         path_x->pacing_bucket_nanosec += (current_time - path_x->pacing_evaluation_time) << 10;
+//         path_x->pacing_evaluation_time = current_time;
+//         if (path_x->pacing_bucket_nanosec > path_x->pacing_bucket_max) {
+//             path_x->pacing_bucket_nanosec = path_x->pacing_bucket_max;
+//         }
+//     }
 }
 
 /*
@@ -544,17 +544,17 @@ static void picoquic_update_pacing_bucket(picoquic_path_t * path_x, uint64_t cur
 int picoquic_is_sending_authorized_by_pacing(picoquic_path_t * path_x, uint64_t current_time, uint64_t * next_time)
 {
     int ret = 1;
-
-    picoquic_update_pacing_bucket(path_x, current_time);
-
-    if (path_x->pacing_bucket_nanosec <= 0) {
-        uint64_t next_pacing_time = current_time + path_x->pacing_packet_time_microsec;
-        if (next_pacing_time < *next_time) {
-            *next_time = next_pacing_time;
-        }
-        ret = 0;
-    }
-
+// 
+//     picoquic_update_pacing_bucket(path_x, current_time);
+// 
+//     if (path_x->pacing_bucket_nanosec <= 0) {
+//         uint64_t next_pacing_time = current_time + path_x->pacing_packet_time_microsec;
+//         if (next_pacing_time < *next_time) {
+//             *next_time = next_pacing_time;
+//         }
+//         ret = 0;
+//     }
+// 
     return ret;
 }
 
@@ -565,32 +565,32 @@ int picoquic_is_sending_authorized_by_pacing(picoquic_path_t * path_x, uint64_t 
 
 void picoquic_update_pacing_data(picoquic_path_t * path_x)
 {
-    uint64_t rtt_nanosec = (path_x->smoothed_rtt << 10);
-
-    if (path_x->cwin < 8 * path_x->send_mtu) {
-        /* Small windows, should only relie on ACK clocking */
-        path_x->pacing_bucket_max = rtt_nanosec;
-        path_x->pacing_packet_time_nanosec = 1;
-        path_x->pacing_packet_time_microsec = 1;
-
-    }
-    else {
-
-        path_x->pacing_packet_time_nanosec = (rtt_nanosec * path_x->send_mtu) / path_x->cwin;
-
-        if (path_x->pacing_packet_time_nanosec <= 0) {
-            path_x->pacing_packet_time_nanosec = 1;
-            path_x->pacing_packet_time_microsec = 1;
-        }
-        else {
-            path_x->pacing_packet_time_microsec = (path_x->pacing_packet_time_nanosec + 1023) >> 10;
-        }
-
-        path_x->pacing_bucket_max = (rtt_nanosec / 4);
-        if (path_x->pacing_bucket_max < 2 * path_x->pacing_packet_time_nanosec) {
-            path_x->pacing_bucket_max = 2 * path_x->pacing_packet_time_nanosec;
-        }
-    }
+//     uint64_t rtt_nanosec = (path_x->smoothed_rtt << 10);
+// 
+//     if (path_x->cwin < 8 * path_x->send_mtu) {
+//         /* Small windows, should only relie on ACK clocking */
+//         path_x->pacing_bucket_max = rtt_nanosec;
+//         path_x->pacing_packet_time_nanosec = 1;
+//         path_x->pacing_packet_time_microsec = 1;
+// 
+//     }
+//     else {
+// 
+//         path_x->pacing_packet_time_nanosec = (rtt_nanosec * path_x->send_mtu) / path_x->cwin;
+// 
+//         if (path_x->pacing_packet_time_nanosec <= 0) {
+//             path_x->pacing_packet_time_nanosec = 1;
+//             path_x->pacing_packet_time_microsec = 1;
+//         }
+//         else {
+//             path_x->pacing_packet_time_microsec = (path_x->pacing_packet_time_nanosec + 1023) >> 10;
+//         }
+// 
+//         path_x->pacing_bucket_max = (rtt_nanosec / 4);
+//         if (path_x->pacing_bucket_max < 2 * path_x->pacing_packet_time_nanosec) {
+//             path_x->pacing_bucket_max = 2 * path_x->pacing_packet_time_nanosec;
+//         }
+//     }
 }
 
 /* 
@@ -598,13 +598,13 @@ void picoquic_update_pacing_data(picoquic_path_t * path_x)
  */
 void picoquic_update_pacing_after_send(picoquic_path_t * path_x, uint64_t current_time)
 {
-    picoquic_update_pacing_bucket(path_x, current_time);
-
-    if (path_x->pacing_bucket_nanosec < path_x->pacing_packet_time_nanosec) {
-        path_x->pacing_bucket_nanosec = 0;
-    } else {
-        path_x->pacing_bucket_nanosec -= path_x->pacing_packet_time_nanosec;
-    }
+//     picoquic_update_pacing_bucket(path_x, current_time);
+// 
+//     if (path_x->pacing_bucket_nanosec < path_x->pacing_packet_time_nanosec) {
+//         path_x->pacing_bucket_nanosec = 0;
+//     } else {
+//         path_x->pacing_bucket_nanosec -= path_x->pacing_packet_time_nanosec;
+//     }
 }
 
 /*
@@ -632,7 +632,7 @@ void picoquic_queue_for_retransmit(picoquic_cnx_t* cnx, picoquic_path_t * path_x
         /* Account for bytes in transit, for congestion control */
         path_x->bytes_in_transit += length;
         /* Update the pacing data */
-        picoquic_update_pacing_after_send(path_x, current_time);
+//         picoquic_update_pacing_after_send(path_x, current_time);
     }
 }
 
