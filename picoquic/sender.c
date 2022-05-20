@@ -2413,7 +2413,7 @@ int picoquic_prepare_packet_ready(picoquic_cnx_t* cnx, picoquic_path_t * path_x,
                 }
 
 
-                if (path_x->cwin < path_x->bytes_in_transit) {
+                if (0) {
                     uint64_t cwin_time = current_time + path_x->smoothed_rtt;
 
                     cnx->cwin_blocked = 1;
