@@ -23,7 +23,7 @@ then
 fi
 
 if [ -z $1 ]; then
-    echo -e "\n\033[0;31mError arguments.\e[0m"    
+    echo -e "\n\033[0;31mError arguments.\e[0m"
     print_usage
 else
     SIDE=$1
@@ -38,19 +38,15 @@ fi
 case $ECN_MODE in
     "noecn")
         CCA="cubic"
-        ECN=""
         ;;
     "classic")
         CCA="cubic"
-        ECN="-E"
         ;;
     "l4s")
         CCA="prague"
-        ECN="-E"
         ;;
     *)
         CCA="prague"
-        ECN="-E"
         ;;
 esac
 
@@ -83,7 +79,13 @@ function launch_srv(){
     local PORT=$4
 
     git checkout $PICODIR
-    
+
+    if [ $ECN == "noecn" ]; then
+	ECN=""
+    else
+        ECN="-E"
+    fi
+
     ### Server
     # -E            Utilisation d'ECN
     # -C prague     Utilisation de prague pour le CCA
@@ -111,7 +113,13 @@ function launch_cli(){
     
     git checkout $PICODIR
     rm output.log
-    
+
+    if [ $ECN == "noecn" ]; then
+	ECN=""
+    else
+        ECN="-E"
+    fi
+
     if [ $PICODIR != $burstDIR ]; then
         ### Client
         # -n SRV_NAME SRV_IP        Nom et IP du serveur
@@ -170,22 +178,22 @@ if [ $SIDE == "srv" ]
 then
     case $FLOW_T in
     "legit")
-        ARGS="$legitDIR $ECN $CCA $PORT"
+        ARGS="$legitDIR $ECN_MODE $CCA $PORT"
         ;;
     "unrespECN")
-        ARGS="$unrespECNDIR $ECN $CCA $PORT"
+        ARGS="$unrespECNDIR $ECN_MODE $CCA $PORT"
         ;;
     "nopacing")
-        ARGS="$nopacingDIR $ECN $CCA $PORT"
+        ARGS="$nopacingDIR $ECN_MODE $CCA $PORT"
         ;;
     "vanilla")
-        ARGS="$vanillaDIR $ECN $CCA $PORT"
+        ARGS="$vanillaDIR $ECN_MODE $CCA $PORT"
         ;;
     "L4STeam")
-        ARGS="$l4sTeamDIR $ECN $CCA $PORT"
+        ARGS="$l4sTeamDIR $ECN_MODE $CCA $PORT"
         ;;
     *)
-        ARGS="$legitDIR $ECN $CCA $PORT"
+        ARGS="$legitDIR $ECN_MODE $CCA $PORT"
         ;;
     esac
 
@@ -200,19 +208,19 @@ elif [ $SIDE == "cli" ]
 then
     case $FLOW_T in
     "legit")
-        ARGS="$legitDIR $ECN $CCA $PORT $F_SIZE"
+        ARGS="$legitDIR $ECN_MODE $CCA $PORT $F_SIZE"
         ;;
     "burst")
-        ARGS="$burstDIR $ECN $CCA $PORT $F_SIZE"
+        ARGS="$burstDIR $ECN_MODE $CCA $PORT $F_SIZE"
         ;;
     "vanilla")
-        ARGS="$vanillaDIR $ECN $CCA $PORT"
+        ARGS="$vanillaDIR $ECN_MODE $CCA $PORT"
         ;;
     "L4STeam")
-        ARGS="$l4sTeamDIR $ECN $CCA $PORT $F_SIZE"
+        ARGS="$l4sTeamDIR $ECN_MODE $CCA $PORT $F_SIZE"
         ;;
     *)
-        ARGS="$legitDIR $ECN $CCA $PORT $F_SIZE"
+        ARGS="$legitDIR $ECN_MODE $CCA $PORT $F_SIZE"
         ;;
     esac
 
