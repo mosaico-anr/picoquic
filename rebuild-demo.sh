@@ -1,3 +1,8 @@
+# 
+# Author: Marius Letourneau
+# Year: 2021
+# 
+
 #!/bin/bash
 
 oldDIR="/home/$USER/MOSAICO/picoquic/picoquic-quic-prague/"

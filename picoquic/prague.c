@@ -17,6 +17,12 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+* Modified by: Marius Letourneau, 2021
+* Modifications: 
+*   - Disable cwin reduction and cwin reset on timeout and recovery mode.
+*   - Set windows reduction to zero on prague algorithm when receiving ECN packet
+* 
 */
 
 #include "picoquic_internal.h"

@@ -1,3 +1,8 @@
+# 
+# Author: Marius Letourneau
+# Year: 2021
+# 
+
 #!/bin/bash
 
 PRES="\e[1;40m$(hostname)\e[0m:\e[32m$0\e[0m"
