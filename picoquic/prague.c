@@ -20,6 +20,12 @@
 * 
 * This code is derived in part from the initial implementation of the prague
 * algorithm in picoquic, written in 2019 by by Quentin De Coninck.
+* 
+* Modified by: Marius Letourneau, 2022
+* Modifications: 
+*   - Disable cwin reduction and cwin reset on timeout and recovery mode.
+*   - Set windows reduction to zero on prague algorithm when receiving ECN packet
+* 
 */
 
 #include "picoquic_internal.h"
@@ -183,17 +189,17 @@ static void picoquic_prague_enter_recovery(
     picoquic_prague_state_t* pr_state,
     uint64_t current_time)
 {
-    pr_state->ssthresh = path_x->cwin / 2;
+    //pr_state->ssthresh = path_x->cwin / 2;
     if (pr_state->ssthresh < PICOQUIC_CWIN_MINIMUM) {
         pr_state->ssthresh = PICOQUIC_CWIN_MINIMUM;
     }
 
     if (notification == picoquic_congestion_notification_timeout) {
-        path_x->cwin = PICOQUIC_CWIN_MINIMUM;
+        //path_x->cwin = PICOQUIC_CWIN_MINIMUM;
         pr_state->alg_state = picoquic_prague_alg_slow_start;
     }
     else {
-        path_x->cwin = pr_state->ssthresh;
+        //path_x->cwin = pr_state->ssthresh;
         pr_state->alg_state = picoquic_prague_alg_congestion_avoidance;
     }
 
@@ -266,7 +272,7 @@ static void picoquic_prague_update_alpha(picoquic_cnx_t* cnx,
             }
             else {
                 /* If we got ECN marks in the last RTT, update the ssthresh and the CWIN */
-                uint64_t reduction = (path_x->cwin * pr_state->alpha) / 2048;
+                uint64_t reduction = 0;
                 pr_state->ssthresh = path_x->cwin - reduction;
                 if (pr_state->ssthresh < PICOQUIC_CWIN_MINIMUM) {
                     pr_state->ssthresh = PICOQUIC_CWIN_MINIMUM;
