@@ -178,3 +178,22 @@ that is, QUIC Transport version 1. Picoquic will also accept negotiation of prev
 # Creating QLOG Log Files
 
 See [How To Produce QLOG files with picoquic](doc/QLOG.md)
+
+# Note about this fork (`mosaico-anr/picoquic`)
+
+This fork is up to date with RFC9000 of QUIC specification. It corresponds to the commit `ec4b9263e89b9a9fe3af38885565f5b10c948e3b` of the `private-octopus` repo that implements the Prague congetion control in QUIC. 
+
+This branch (`new-unrespECN`) is here as a feature of branch `picoquic-RFC9000` which stands for a reference point. **This branch** implements "unresponsive ECN" behavior (as used in [this paper](https://ieeexplore.ieee.org/abstract/document/9615534) and [this papier](https://link.springer.com/article/10.1007/s10922-022-09706-z) but with an up-to-date picoquic version. **Other branches** will cover other undesirable flows such as applicative bursts or microbursts.
+
+To see changes between `private-octopus` (commit `ec4b9263e89b9a9fe3af38885565f5b10c948e3b`) and `new-unrespECN`, after a `git clone` you can run:
+
+```
+git checkout new-unrespECN
+git branch --list -a # To see all branches
+git diff origin/picoquic-RFC9000 origin/new-unrespECN
+```
+
+The main branch `xp-unrespECN` is up to date with the version 17 of the QUIC specification, more precisely it corresponds to the commit `77d3b8628a3d2bf2368ba4288a21c4ed8b121c6e` of the `private-octopus` repository. 
+
+ 
+ 
