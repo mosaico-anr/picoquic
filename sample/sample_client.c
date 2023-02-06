@@ -475,7 +475,7 @@ int picoquic_sample_client(char const * server_name, int server_port, char const
      * will use it for just one connection. 
      * The sample code exercises just a small subset of the QUIC context configuration options:
      * - use files to store tickets and tokens in order to manage retry and 0-RTT
-     * - set the congestion control algorithm to BBR
+     * - set the congestion control algorithm to Prague
      * - enable logging of encryption keys for wireshark debugging.
      * - instantiate a binary log option, and log all packets.
      */
@@ -493,7 +493,7 @@ int picoquic_sample_client(char const * server_name, int server_port, char const
                 fprintf(stderr, "No token file present. Will create one as <%s>.\n", token_store_filename);
             }
 
-            picoquic_set_default_congestion_algorithm(quic, picoquic_bbr_algorithm);
+            picoquic_set_default_congestion_algorithm(quic, picoquic_prague_algorithm);
 
             picoquic_set_key_log_file_from_env(quic);
             picoquic_set_qlog(quic, qlog_dir);
