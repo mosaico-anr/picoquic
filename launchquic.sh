@@ -123,7 +123,7 @@ function launch_cli(){
     fi
 
     ### Client
-    CMD="./picoquic_sample client $SRV_IP $PORT /tmp index-${WEIGHT}MB.htm"
+    CMD="./build/picoquic_sample client $SRV_IP $PORT /tmp index-${WEIGHT}MB.htm"
     echo -e "$PRES: Launching command: $CMD \nFrom directory: $PICODIR"
     if [ $VERBOSE == "verbose" ]; then
         eval $CMD
