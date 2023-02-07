@@ -162,12 +162,13 @@ then
     launch_srv $ARGS $VERBOSE
 elif [ $SIDE == "cli" ]
 then
+    SRV_IP=$2
     case $FLOW_T in
     "legit")
-        ARGS="$legitDIR $ECN_MODE $CCA $PORT $F_SIZE"
+        ARGS="$legitDIR $ECN_MODE $SRV_IP $PORT $F_SIZE"
         ;;
     *)
-        ARGS="$legitDIR $ECN_MODE $CCA $PORT $F_SIZE"
+        ARGS="$legitDIR $ECN_MODE $SRV_IP $PORT $F_SIZE"
         ;;
     esac
 
