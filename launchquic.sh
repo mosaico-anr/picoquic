@@ -94,7 +94,7 @@ function launch_srv(){
     #   openssl req -x509 -newkey rsa:2048 -days 365 -keyout ca-key.pem -out ca-cert.pem
     #   openssl req -newkey rsa:2048 -keyout server-key.pem -out server-req.pem
 
-    CMD="./build/picoquic_sample server $PORT ./ca-cert.pem ./server-key.pem ./server_files"
+    CMD="./start_picoserver.sh $PORT "
     echo -e "$PRES: Launched command: $CMD \nFrom directory: $PICODIR"
 
     if [ $VERBOSE == "verbose" ]; then
