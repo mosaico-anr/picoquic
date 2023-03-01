@@ -103,6 +103,7 @@ typedef enum {
 #define NB_RTT_RENO 4
 #define PRAGUE_SHIFT_G 4 /* g = 1/2^4, gain parameter for alpha EWMA */
 #define PRAGUE_G_INV (1<<PRAGUE_SHIFT_G)
+#define RED_COEF 0
 
 typedef struct st_picoquic_prague_state_t {
     picoquic_prague_alg_state_t alg_state;
@@ -272,7 +273,8 @@ static void picoquic_prague_update_alpha(picoquic_cnx_t* cnx,
             }
             else {
                 /* If we got ECN marks in the last RTT, update the ssthresh and the CWIN */
-                uint64_t reduction = 0;
+                uint64_t reduction = (path_x->cwin * pr_state->alpha) / 2048;
+                reduction = reduction * RED_COEF;
                 pr_state->ssthresh = path_x->cwin - reduction;
                 if (pr_state->ssthresh < PICOQUIC_CWIN_MINIMUM) {
                     pr_state->ssthresh = PICOQUIC_CWIN_MINIMUM;

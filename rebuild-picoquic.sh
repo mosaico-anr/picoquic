@@ -38,6 +38,12 @@ then
         ;;
     "unrespECN")
         PICODIR=$unrespECNDIR
+        if [ -z $4 ]
+        then
+            REDUCTION=0
+        else
+            REDUCTION=$4
+        fi
         ;;
     *)
         PICODIR=$legitDIR
@@ -68,6 +74,14 @@ function rebuild() {
     else
         sed -i 's/#define PICOQUIC_L4S_CONF PICOQUIC_ECN_ECT_0/#define PICOQUIC_L4S_CONF PICOQUIC_ECN_ECT_1/' ./picoquic/picosocks.h
     fi
+    
+    if [[ $PICODIR == $unrespECNDIR ]]
+    then
+        CURR_RED=`grep "RED_COEF" picoquic/prague.c | cut -d" " -f3`
+        sed -i "s/#define RED_COEF $CURR_RED/#define RED_COEF $REDUCTION/" ./picoquic/prague.c
+        echo -e "\n$PRES: Setting reduction to $REDUCTION"
+    fi
+    
     
     mkdir -p ./build/
     cd ./build/
